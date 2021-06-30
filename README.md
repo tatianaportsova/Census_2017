@@ -32,6 +32,6 @@
 
 ∙ Statistically-Generated estimate of Count of Females of Majority Race in that County
 
-## ________________________________________________________________________
+## ____________________________________________________________
 ## Please note that since the source dataset contains missing values, the derived columns of the new dataset are converted to NULL as well in order to avoid incorrect misleading calculations.
 
