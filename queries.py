@@ -30,8 +30,8 @@ MainQ = """
       ROUND(CAST(hV1.Men AS Float)/(CAST(hV1.Total_Pop AS Float)/100),2) AS Percentage_Male,
       ROUND(CAST(hV1.Women AS Float)/(CAST(hV1.Total_Pop AS Float)/100),2)AS Percentage_Female,
       hV4.Majority_Race AS Majority_Race,
-      ROUND(hV5.RacePopulation_Men,0) AS Estimate_Count_Males,
-      ROUND(hV5.RacePopulation_Women,0) AS Estimate_Count_Females
+      CAST (ROUND(hV5.RacePopulation_Men,0) AS INT) AS Estimate_Count_Males,
+      CAST (ROUND(hV5.RacePopulation_Women,0) AS INT) AS Estimate_Count_Females
     FROM users
     LEFT JOIN helper_View AS hV ON hV.State=users.State
     LEFT JOIN helper_View1 AS hV1 ON hV1.State=users.State
@@ -49,12 +49,6 @@ MainQ = """
 # A view is the way to pack a query into a named object stored in the database.
 # The data of the underlying tables can be accesses through a view. 
 
-# h = """
-#       CREATE VIEW IF NOT EXISTS users_not_NULL AS 
-#       SELECT * 
-#       FROM users
-#       WHERE users.White IS NOT NULL;
-#     """
 
 # helper_View stores the names and populations of the most populated counties in each state
 helperQ = """
@@ -119,40 +113,24 @@ helperQ2 = """
       FROM helper_View1;
       """
 
-# helperQ2 = """
-#       CREATE VIEW IF NOT EXISTS helper_View2 AS 
-#       SELECT 
-#         State, 
-#         White_Pop 
-#       FROM (
-#         SELECT 
-#           hV1.State, 
-#           users_not_NULL.County, 
-#           ROUND(hV1.White_Pop/hV1.Number_Tract,2) AS White_Pop 
-#         FROM users_not_NULL
-#         JOIN helper_View1 AS hV1 on users_not_NULL.County=hV1.County
-#         GROUP BY hV1.County
-#         ORDER BY hV1.State);
-#       """
-
-# helper_View3 stores the information on percentage of Non-White people 
-# in the counties with the highest percentage of non-white residents in each state
-helperQ3 = """
-          CREATE VIEW IF NOT EXISTS helper_View3 AS 
-          SELECT 
-            State, 
-            W_Pop, 
-            HCounty 
-          FROM (
-            SELECT 
-              hV1.State, 
-              users.County AS HCounty, 
-              ROUND(hV1.White_Pop/hV1.Number_Tract,2) AS W_Pop 
-            FROM users
-            JOIN helper_View1 AS hV1 on users.County=hV1.County
-            GROUP BY hV1.County
-            ORDER BY hV1.State);  
-           """
+# # helper_View3 stores the information on percentage of Non-White people 
+# # in the counties with the highest percentage of non-white residents in each state
+# helperQ3 = """
+#           CREATE VIEW IF NOT EXISTS helper_View3 AS 
+#           SELECT 
+#             State, 
+#             W_Pop, 
+#             HCounty 
+#           FROM (
+#             SELECT 
+#               hV1.State, 
+#               users.County AS HCounty, 
+#               ROUND(hV1.White_Pop/hV1.Number_Tract,2) AS W_Pop 
+#             FROM users
+#             JOIN helper_View1 AS hV1 on users.County=hV1.County
+#             GROUP BY hV1.County
+#             ORDER BY hV1.State);  
+#            """
 
 # helper_View4 stores name of the Majority Race for the counties
 # with the highest percentage of non-white residents in each state
@@ -227,11 +205,9 @@ helperQ5 = """
           """
 
 # Execute the Helper Queries
-# cursor1.execute(h)
 cursor1.execute(helperQ)
 cursor1.execute(helperQ1)
 cursor1.execute(helperQ2)
-# cursor1.execute(helperQ3)
 cursor1.execute(helperQ4)
 cursor1.execute(helperQ5)
 
