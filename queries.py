@@ -36,19 +36,15 @@ MainQ = """
     LEFT JOIN helper_View AS hV ON hV.State=users.State
     LEFT JOIN helper_View1 AS hV1 ON hV1.State=users.State
     LEFT JOIN helper_View2 AS hV2 ON hV2.State=users.State
-    
     LEFT JOIN helper_View4 AS hV4 ON hV4.State=users.State
     LEFT JOIN helper_View5 AS hV5 ON hV5.State=users.State
     GROUP BY users.State;
     """
 
-# LEFT JOIN helper_View3 AS hV3 ON hV3.State=users.State
-
 # --------------- Helper Queries --------------- #
 # A View is a result set of a stored query. 
 # A view is the way to pack a query into a named object stored in the database.
 # The data of the underlying tables can be accesses through a view. 
-
 
 # helper_View stores the names and populations of the most populated counties in each state
 helperQ = """
@@ -113,25 +109,6 @@ helperQ2 = """
       FROM helper_View1;
       """
 
-# # helper_View3 stores the information on percentage of Non-White people 
-# # in the counties with the highest percentage of non-white residents in each state
-# helperQ3 = """
-#           CREATE VIEW IF NOT EXISTS helper_View3 AS 
-#           SELECT 
-#             State, 
-#             W_Pop, 
-#             HCounty 
-#           FROM (
-#             SELECT 
-#               hV1.State, 
-#               users.County AS HCounty, 
-#               ROUND(hV1.White_Pop/hV1.Number_Tract,2) AS W_Pop 
-#             FROM users
-#             JOIN helper_View1 AS hV1 on users.County=hV1.County
-#             GROUP BY hV1.County
-#             ORDER BY hV1.State);  
-#            """
-
 # helper_View4 stores name of the Majority Race for the counties
 # with the highest percentage of non-white residents in each state
 helperQ4 = """
@@ -180,7 +157,7 @@ helperQ4 = """
           FROM helper_View1;
           """
 
-# helper_View4 estimates the number of Male and Female residents for the counties
+# helper_View5 estimates the number of Male and Female residents for the counties
 # with the highest percentage of non-white residents in each state
 # that belong to the Majority Race in that county
 helperQ5 = """
