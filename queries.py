@@ -7,7 +7,7 @@ DB_FILEPATH1  = os.path.join(os.path.dirname(__file__), "2017_census_data.sqlite
 # Open the Database connection
 connection1 = sqlite3.connect(DB_FILEPATH1)
 connection1.row_factory = sqlite3.Row
-print("CONNECTION:", connection1)
+# print("CONNECTION:", connection1)
 # Declare a cursor
 cursor1 = connection1.cursor()
 
@@ -26,9 +26,9 @@ MainQ = """
       hV1.County AS County_Highest_Percentage_of_Non_White,
       hV1.Total_Pop AS Non_White_County_Population,
       hV2.White_Pop AS White_Percentage,
-      ROUND(100-(hV3.W_Pop),2) AS Non_White_Percentage,
-      ROUND(hV1.Men/(hV1.Total_Pop/100),2) AS Percentage_Male,
-      ROUND(hV1.Women/(hV1.Total_Pop/100),2) AS Percentage_Female,
+      ROUND(100-(hV2.White_Pop),2) AS Non_White_Percentage,
+      ROUND(CAST(hV1.Men AS Float)/(CAST(hV1.Total_Pop AS Float)/100),2) AS Percentage_Male,
+      ROUND(CAST(hV1.Women AS Float)/(CAST(hV1.Total_Pop AS Float)/100),2)AS Percentage_Female,
       hV4.Majority_Race AS Majority_Race,
       ROUND(hV5.RacePopulation_Men,0) AS Estimate_Count_Males,
       ROUND(hV5.RacePopulation_Women,0) AS Estimate_Count_Females
@@ -36,17 +36,25 @@ MainQ = """
     LEFT JOIN helper_View AS hV ON hV.State=users.State
     LEFT JOIN helper_View1 AS hV1 ON hV1.State=users.State
     LEFT JOIN helper_View2 AS hV2 ON hV2.State=users.State
-    LEFT JOIN helper_View3 AS hV3 ON hV3.State=users.State
+    
     LEFT JOIN helper_View4 AS hV4 ON hV4.State=users.State
     LEFT JOIN helper_View5 AS hV5 ON hV5.State=users.State
     GROUP BY users.State;
     """
 
+# LEFT JOIN helper_View3 AS hV3 ON hV3.State=users.State
 
 # --------------- Helper Queries --------------- #
 # A View is a result set of a stored query. 
 # A view is the way to pack a query into a named object stored in the database.
 # The data of the underlying tables can be accesses through a view. 
+
+# h = """
+#       CREATE VIEW IF NOT EXISTS users_not_NULL AS 
+#       SELECT * 
+#       FROM users
+#       WHERE users.White IS NOT NULL;
+#     """
 
 # helper_View stores the names and populations of the most populated counties in each state
 helperQ = """
@@ -71,7 +79,7 @@ helperQ = """
         """
 
 # helper_View1 stores the names and populations of the counties
-# with highest the percentage of non-white residents in each state,
+# with the highest percentage of non-white residents in each state,
 # number of men, number of women in that county,
 # information on percentages of other races in that county
 helperQ1 = """
@@ -93,7 +101,7 @@ helperQ1 = """
                       SUM(White) AS White_Pop,
                       SUM(Men) AS Men, 
                       SUM(Women) AS Women 
-                    FROM users 
+                    FROM users
                     GROUP BY State, County 
                     ORDER BY State, White_Pop ASC) AS n_Table) 
             SELECT * FROM added_row_number
@@ -106,17 +114,26 @@ helperQ2 = """
       CREATE VIEW IF NOT EXISTS helper_View2 AS 
       SELECT 
         State, 
-        White_Pop 
-      FROM (
-        SELECT 
-          hV1.State, 
-          users.County, 
-          ROUND(hV1.White_Pop/hV1.Number_Tract,2) AS White_Pop 
-        FROM users
-        JOIN helper_View1 AS hV1 on users.County=hV1.County
-        GROUP BY hV1.County
-        ORDER BY hV1.State);
+        County, 
+        ROUND(White_Pop/Number_Tract,2) AS White_Pop 
+      FROM helper_View1;
       """
+
+# helperQ2 = """
+#       CREATE VIEW IF NOT EXISTS helper_View2 AS 
+#       SELECT 
+#         State, 
+#         White_Pop 
+#       FROM (
+#         SELECT 
+#           hV1.State, 
+#           users_not_NULL.County, 
+#           ROUND(hV1.White_Pop/hV1.Number_Tract,2) AS White_Pop 
+#         FROM users_not_NULL
+#         JOIN helper_View1 AS hV1 on users_not_NULL.County=hV1.County
+#         GROUP BY hV1.County
+#         ORDER BY hV1.State);
+#       """
 
 # helper_View3 stores the information on percentage of Non-White people 
 # in the counties with the highest percentage of non-white residents in each state
@@ -193,27 +210,28 @@ helperQ5 = """
           SELECT
             hV1.State,
             hV1.County,
-            ((((hV.T_Pop/100)*(SELECT ROUND(MAX(hV1.Hispanic_Pop, 
+            ((((CAST (hV.T_Pop AS Float)/100)*(SELECT ROUND(MAX(hV1.Hispanic_Pop, 
                               hV1.Black_Pop, 
                               hV1.Native_Pop, 
                               hV1.Asian_Pop, 
                               hV1.Pacific_Pop, 
-                              hV1.White_Pop),1)/hV1.Number_Tract))/100)*ROUND(hV1.Men/(hV1.Total_Pop/100),2)) AS RacePopulation_Men,
-            ((((hV.T_Pop/100)*(SELECT ROUND(MAX(hV1.Hispanic_Pop, 
+                              hV1.White_Pop),1)/CAST (hV1.Number_Tract AS Float)))/100)*ROUND(CAST (hV1.Men AS Float)/(CAST (hV1.Total_Pop AS Float)/100),2)) AS RacePopulation_Men,
+            ((((CAST (hV.T_Pop AS Float)/100)*(SELECT ROUND(MAX(hV1.Hispanic_Pop, 
                               hV1.Black_Pop, 
                               hV1.Native_Pop, 
                               hV1.Asian_Pop, 
                               hV1.Pacific_Pop, 
-                              hV1.White_Pop),1)/hV1.Number_Tract))/100)*ROUND(hV1.Women/(hV1.Total_Pop/100),2)) AS RacePopulation_Women
+                              hV1.White_Pop),1)/CAST (hV1.Number_Tract AS Float)))/100)*ROUND(CAST (hV1.Women AS Float)/(CAST (hV1.Total_Pop AS Float)/100),2)) AS RacePopulation_Women
           FROM helper_View1 AS hV1
           LEFT JOIN helper_View AS hV ON hV.State=hv1.State
           """
 
 # Execute the Helper Queries
+# cursor1.execute(h)
 cursor1.execute(helperQ)
 cursor1.execute(helperQ1)
 cursor1.execute(helperQ2)
-cursor1.execute(helperQ3)
+# cursor1.execute(helperQ3)
 cursor1.execute(helperQ4)
 cursor1.execute(helperQ5)
 
@@ -225,3 +243,6 @@ connection1.commit()
 connection1.close()
 
 print("Census_Table has been created")
+
+
+
