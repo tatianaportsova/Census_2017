@@ -6,7 +6,7 @@ DB_FILEPATH1  = os.path.join(os.path.dirname(__file__), "2017_census_data.sqlite
 
 # Open the Database connection
 connection1 = sqlite3.connect(DB_FILEPATH1)
-connection1.row_factory = sqlite3.Row
+# connection1.row_factory = sqlite3.Row
 # print("CONNECTION:", connection1)
 # Declare a cursor
 cursor1 = connection1.cursor()
@@ -14,6 +14,21 @@ cursor1 = connection1.cursor()
 
 # --------------- Main Query --------------- #
 # The Main Query that creates and populates the new Table
+# with the following columns:
+# ∙ State
+# ∙ Census_Tracts_Count (Count of Census Tracts)
+# ∙ Total_State_Population
+# ∙ Most_Populated_County
+# ∙ MPC_Population (Population of the Most Populous County)
+# ∙ County_Highest_Percentage_of_Non_White (County with Highest Percentage of Non-White Residents)
+# ∙ Non_White_County_Population (Population of the County with Highest Percentage of Non-White Residents)
+# ∙ White_Percentage (Percentage of White Residents in that County)
+# ∙ Non_White_Percentage (Percentage of Non-White Residents in that County)
+# ∙ Percentage_Male (Percentage of Male Residents in that County)
+# ∙ Percentage_Female (Percentage of Female Residents in that County)
+# ∙ Majority_Race (Majority Race in tthe County with Highest Percentage of Non-White Residents)
+# ∙ Estimate_Count_Males (Statistically-Generated Estimate of Count of Males of Majority Race in that County)
+# ∙ Estimate_Count_Females (Statistically-Generated estimate of Count of Females of Majority Race in that County)
 
 MainQ = """
     CREATE TABLE IF NOT EXISTS Census_Table AS 
